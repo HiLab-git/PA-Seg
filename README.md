@@ -10,6 +10,19 @@ Code for this paper: PA-Seg: Learning from Point Annotations for 3D Medical Imag
         publisher={IEEE}
 }
 ```
+
+## Method Overview
+In the first stage, we expand the annotation seeds based on geodesic distance transform, and train an initial model using the expanded seeds, with the unlabeled pixels regularized by multi-view CRF loss and Variance Minimization (VM) loss. Pseudo labels are then obtained by using the initial model for inference. In the second stage, to deal with noises in the pseudo labels, we propose Self and Cross Monitoring (SCM), where a primary model and an auxiliary model supervise each other via Cross Knowledge Distillation (CKD) based on soft labels, in addition to self-training of each model.
+
+*Illustration of our point annotation-based segmentation. Green: Background. Red: Foreground.*
+<p align="center">
+  <img src="figs/point_anno.png" width="474.67" height=" 278.67">
+</p>
+
+*An overview of the proposed PA-Seg for weakly supervised 3D segmentation based on point annotations.*
+<p align="center">
+  <img src="figs/overview.png">
+</p>
 	
 ## Requirements
 We have only tested in the following environments. Please ensure that the version of each package is not lower than the one listed below. 
@@ -30,7 +43,7 @@ python setup.py install
 
 ## Data
 
-### Vestibular Schwannoma Segmentation
+### Vestibular Schwannoma (VS) Segmentation
 
 **Step 1**: Please follow the instructions [here](https://wiki.cancerimagingarchive.net/display/NBIA/Downloading+TCIA+Images) to download the NBIA Data Retriever.
 
@@ -43,7 +56,7 @@ python ./data/VS/convert.py \
 --output ./data/VS/image
 ```
 
-**Step 4**: Download full annotations from [ALiYun Drive][aliyundrive_link] or [Google Drive][googoledrive_link] and save them in `./data/VS/label` .
+**Step 4**: Download full annotations from [Google Drive][googledrive_link] or [ALiYun Drive][aliyundrive_link] and save them in `./data/VS/label` .
 
 **Step 5**: Execute the script to crop the images and full annotations:
 ```bash
@@ -54,12 +67,12 @@ python ./data/VS/image_crop.py \
 --label_postfix Label
 ```
 
-**Step 6**: Download our proposed points annotations from [ALiYun Drive][aliyundrive_link] or [Google Drive][googoledrive_link] and save them in `./data/VS/annotation_7points` . Note that the points annotations have already been cropped.
+**Step 6**: Download our proposed point annotations from [Google Drive][googledrive_link] or [ALiYun Drive][aliyundrive_link] and save them in `./data/VS/annotation_7points` . Note that the point annotations have already been cropped.
 
-[aliyundrive_link]: https://www.aliyundrive.com/s/FiFteRhzZWM
-[googoledrive_link]: https://drive.google.com/drive/folders/1-wx6T8ZdcMAnG6I65u2UOLDrzvKGBt-u?usp=sharing
+[googledrive_link]: https://drive.google.com/drive/folders/1-wx6T8ZdcMAnG6I65u2UOLDrzvKGBt-u?usp=sharing
+[aliyundrive_link]: https://www.aliyundrive.com/s/QufY5VvUNgk
 
-### Brain Tumor Segmentation
+### Brain Tumor Segmentation (BraTS)
 
 **Step 1**: Please follow the instructions [here](https://www.med.upenn.edu/cbica/brats2019/registration.html) to acquire the training and the validation data of the BraTS 2019 challenge. Put the dataset in the directory `./data`
 
@@ -70,7 +83,7 @@ python ./data/BraTS/merge_and_move.py \
 --destination_dir ./data/BraTS/
 ```
 
-**Step 3**: Download our proposed points annotations from [ALiYun Drive][aliyundrive_link] or [Google Drive][googoledrive_link] and save them in `./data/BraTS/annotation_7points`
+**Step 3**: Download our proposed point annotations from [Google Drive][googledrive_link] or [ALiYun Drive][aliyundrive_link] and save them in `./data/BraTS/annotation_7points`
 
 ## Usage
 
@@ -105,7 +118,7 @@ python ./data/BraTS/generate_geodesic_labels.py \
 --geodesic_threshold 0.2
 ```
 
-Execute the script to train an initial model using the expanded seeds, with the unlabeled pixels regularized by multi-view CRF loss and Variance Minimization (VM) loss. Note that the `--network` parameter has three options: `U-Net2D5`, `U-Net3D`, and `AttU_Net`.
+Execute the script to train an initial model using the expanded seeds, with the unlabeled pixels regularized by multi-view CRF loss and Variance Minimization (VM) loss. Note that the `--network` parameter has three options: `U-Net2D5`, `U-Net`, and `AttU_Net`.
 ```bash
 # VS dataset
 python train_gatedcrfloss3d22d_multiview_varianceloss.py \
@@ -263,7 +276,7 @@ python utilities/scores.py \
 # BraTS dataset
 python inference.py \
 --model_dir ./models/BraTS/SCM/ \
---network U_Net3D \
+--network U_Net \
 --dataset_split ./splits/split_BraTS.csv \
 --path_images ./data/BraTS/image/ \
 --image_postfix Flair \
@@ -273,7 +286,7 @@ python inference.py \
 
 python utilities/scores.py \
 --model_dir ./models/BraTS/SCM/ \
---network U_Net3D \
+--network U_Net \
 --dataset_split ./splits/split_BraTS.csv \
 --image_postfix Flair \
 --phase inference \
@@ -281,7 +294,7 @@ python utilities/scores.py \
 --label_postfix Label
 ```
 
-Our pre-trained models can be download from [ALiYun Drive][aliyundrive_link] or [Google Drive][googoledrive_link].
+Our pre-trained models can be download from [Google Drive][googledrive_link] or [ALiYun Drive][aliyundrive_link].
 
 
 ## Acknowledgement
