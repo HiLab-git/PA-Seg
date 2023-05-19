@@ -1,3 +1,3 @@
 [submodule "ScribbleDA"]
 	path = ScribbleDA
-	url = https://github.com/KCL-BMEIS/ScribbleDA/
+	url = git@github.com:KCL-BMEIS/ScribbleDA.git
