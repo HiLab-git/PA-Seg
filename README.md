@@ -32,12 +32,6 @@ We have only tested in the following environments. Please ensure that the versio
 ```bash
 pip install -r requirements.txt
 ```
-* Install the CUDA implementation of the permutohedral lattice and the CRF Loss using: 
-```bash
-cd ScribbleDA/Permutohedral_attention_module/PAM_cuda/
-python setup.py build
-python setup.py install
-```
 
 [torch_link]: https://pytorch.org/
 

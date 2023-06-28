@@ -1,3 +1,15 @@
+"""
+    This module is based on the Gated CRF Loss for Weakly Supervised Semantic Image Segmentation.
+    The citation:
+    @article{obukhov2019gated,
+        author={Anton Obukhov, Stamatios Georgoulis, Dengxin Dai and Luc Van Gool},
+        title={Gated CRF Loss for Weakly Supervised Semantic Image Segmentation},
+        journal={arXiv:1906.04651v1},
+        year={2019},
+        url={https://arxiv.org/abs/1906.04651v1},
+    }
+    """
+
 from random import randint
 import torch
 import torch.nn.functional as F
