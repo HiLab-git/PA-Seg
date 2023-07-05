@@ -12,20 +12,23 @@ Code for this paper: PA-Seg: Learning from Point Annotations for 3D Medical Imag
 ```
 
 ## Method Overview
+PA-Seg trains a brain tumor segmentation model using point annotations. Each 3D image has seven annotated points: one in the foreground and six in the background, respectively.
 In the first stage, we expand the annotation seeds based on geodesic distance transform, and train an initial model using the expanded seeds, with the unlabeled pixels regularized by multi-view CRF loss and Variance Minimization (VM) loss. Pseudo labels are then obtained by using the initial model for inference. In the second stage, to deal with noises in the pseudo labels, we propose Self and Cross Monitoring (SCM), where a primary model and an auxiliary model supervise each other via Cross Knowledge Distillation (CKD) based on soft labels, in addition to self-training of each model.
 
-*Illustration of our point annotation-based segmentation. Green: Background. Red: Foreground.*
+
 <p align="center">
   <img src="figs/point_anno.png" width="474.67" height=" 278.67">
 </p>
+*Illustration of our point annotation-based segmentation. Green: Background. Red: Foreground.*
 
-*An overview of the proposed PA-Seg for weakly supervised 3D segmentation based on point annotations.*
+
 <p align="center">
   <img src="figs/overview.png">
 </p>
+*An overview of PA-Seg for weakly supervised 3D segmentation based on point annotations.*
 	
 ## Requirements
-We have only tested in the following environments. Please ensure that the version of each package is not lower than the one listed below. 
+We have only tested in the following environments. Please ensure that the version of each package is not lower than that listed below. 
 * Set up a virtual environment (e.g. conda or virtualenv) with Python == 3.8.10
 * Follow official guidance to install [Pytorch][torch_link] with torch == 1.9.1+cu111
 * Install other requirements using: 
@@ -292,4 +295,4 @@ Our pre-trained models can be download from [Google Drive][googledrive_link] or 
 
 
 ## Acknowledgement
-This code is adapted from [InExtremIS](https://github.com/ReubenDo/InExtremIS). We thank Postdoc Reuben Dorent for his elegant and efficient code base.
+This code is adapted from [InExtremIS](https://github.com/ReubenDo/InExtremIS). We thank Dr. Reuben Dorent for his elegant and efficient code base.

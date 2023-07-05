@@ -1,23 +1,13 @@
-import re
 import GeodisTK
-import time
 import os
 import argparse
 import numpy as np
-import scipy.ndimage as ndimage
 import SimpleITK as sitk
-import matplotlib.pyplot as plt
 from pymic.util.image_process import get_ND_bounding_box, crop_ND_volume_with_bounding_box, set_ND_volume_roi_with_bounding_box_range
 from utilities.utils import create_logger
-from medpy.metric.binary import precision, recall, dc, jc
-from natsort import natsorted
 import pandas as pd
 
-PHASES = ['training', 'validation', 'inference']
-# PHASES = ['validation']
-METRICS = ["precision", "recall", "dice", "jaccard"]
-
-def geodesic_distance_1d(I, S, spacing, lamb, iter):
+def geodesic_distance(I, S, spacing, lamb, iter):
     '''
     Get 3D geodesic disntance by raser scanning.
     I: input image array, can have multiple channels, with shape [D, H, W] or [D, H, W, C]
@@ -45,7 +35,7 @@ def generate_geodesic_labels(image_arr, anno_arr, spacing, seed, opt):
     I = np.asarray(I, np.float32)
     S = crop_ND_volume_with_bounding_box(anno_arr, bbox_min, bbox_max)
     S = np.asarray(S == seed, np.uint8)
-    distance = geodesic_distance_1d(I, S, spacing, opt.geodesic_weight, 4)
+    distance = geodesic_distance(I, S, spacing, opt.geodesic_weight, 4)
     dist_max, dist_min = distance.max(), distance.min()
 
     geodesic_dist_arr = np.zeros_like(image_arr)
@@ -70,7 +60,7 @@ def main():
     geodesic_distance_dir = os.path.join(geodesic_dir, "geodesic_distance")
     os.makedirs(geodesic_distance_dir, exist_ok=True)
     df_split = pd.read_csv(opt.dataset_split,header =None)
-    list_file, list_phase = df_split[0].tolist(), df_split[1].tolist()
+    list_file = df_split[0].tolist() 
     # Logging hyperparameters
     logger.info("[INFO] Hyperparameters")
     logger.info("--dataset_split {0:}".format(opt.dataset_split))
@@ -87,19 +77,9 @@ def main():
     mod_ext = "_{0:}.nii.gz".format(opt.image_postfix)
     label_ext = "_{0:}.nii.gz".format(opt.label_postfix)
     anno_ext = "_{0:}.nii.gz".format(opt.anno_7points_postfix)
-    dict_scores = {}
-    for phase in PHASES:
-        dict_scores[phase] = {"name": []}
-        for metric in METRICS:
-            dict_scores[phase][metric] = []
 
-    for subject, phase in zip(list_file, list_phase):
-        if phase in PHASES:
-            pass
-        else:
-            continue
+    for subject in list_file:
         logger.info(subject)
-        logger.info(phase)
         anno_path = os.path.join(opt.path_anno_7points, subject + anno_ext)
         anno_sitk = sitk.ReadImage(anno_path)
         anno_arr = sitk.GetArrayFromImage(anno_sitk)
@@ -162,35 +142,6 @@ def main():
             geodesic_label_sitk = sitk.GetImageFromArray(geodesic_label_arr)
             geodesic_label_sitk.CopyInformation(anno_sitk)
             sitk.WriteImage(geodesic_label_sitk, os.path.join(geodesic_label_dir, subject + "_GeodesicLabel.nii.gz"))
-
-        # calculate metrics
-        dict_scores[phase]["name"].append(subject)
-        for metric in METRICS:
-            if metric == "precision":
-                score = precision(geodesic_label_arr == 1, label_arr)
-            elif metric == "recall":
-                score = recall(geodesic_label_arr == 1, label_arr)
-            elif metric == "dice":
-                score = dc(geodesic_label_arr == 1, label_arr)
-            elif metric == "jaccard":
-                score = jc(geodesic_label_arr == 1, label_arr)
-            else:
-                raise ValueError
-            dict_scores[phase][metric].append(score)
-            logger.info("{0:}: {1:.4f}".format(metric, score))
-            
-    for phase in PHASES:
-        dict_scores[phase]["name"].append("mean")
-        dict_scores[phase]["name"].append("std")
-        logger.info("-" * 6 + phase + "-" * 6)
-        for metric in METRICS:
-            mean_score = np.mean(dict_scores[phase][metric])
-            std_score = np.std(dict_scores[phase][metric])
-            dict_scores[phase][metric].append(mean_score)
-            dict_scores[phase][metric].append(std_score)
-            logger.info("{0:}  mean: {1:.4f} std: {2:.4f}".format(metric, mean_score, std_score))
-        df_scores = pd.DataFrame(dict_scores[phase])
-        df_scores.to_csv(os.path.join(geodesic_dir, "results_{0:}.csv".format(phase)))
 
 def parsing_data():
     parser = argparse.ArgumentParser(
